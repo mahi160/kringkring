@@ -41,9 +41,9 @@ async fn switch(app: &Router, origin: &str, form: &'static str) -> Response {
 async fn switch_sets_browser_locale_and_keeps_the_brand_bengali() {
     let temp = tempfile::tempdir().unwrap();
     let app = crate::web::router(crate::db::initialize(temp.path()).unwrap());
-    let response = switch(&app, "https://kringkring.local", "lang=en&page=styleguide").await;
+    let response = switch(&app, "https://kringkring.local", "lang=en&page=health").await;
     assert_eq!(response.status(), StatusCode::SEE_OTHER);
-    assert_eq!(response.headers()[header::LOCATION], "/styleguide");
+    assert_eq!(response.headers()[header::LOCATION], "/health");
     let cookie = response.headers()[header::SET_COOKIE]
         .to_str()
         .unwrap()
@@ -54,7 +54,6 @@ async fn switch_sets_browser_locale_and_keeps_the_brand_bengali() {
     for (path, bn, en) in [
         ("/login", "প্রবেশ করুন", "Sign in"),
         ("/health", "ডেটাবেস: সচল", "Database: available"),
-        ("/styleguide", "মেট্রো শৈলী নির্দেশিকা", "Metro styleguide"),
     ] {
         for (locale, expected, cookie) in [("bn", bn, ""), ("en", en, cookie)] {
             let html = text(&app, path, cookie).await;

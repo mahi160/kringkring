@@ -1,7 +1,7 @@
 {% let t = lang.catalog() %}
 {% let staff = duty_paused.is_some() %}
 {% if let Some(paused) = duty_paused %}
-<div class="card duty-bar" data-duty-paused="{{ paused }}">
+<div class="duty-bar{% if paused %} duty-bar--paused{% endif %}" data-duty-paused="{{ paused }}">
   <div>
     <strong>{% if paused %}{{ t.duty_paused }}{% else %}{{ t.duty_on }}{% endif %}</strong>
     {% if paused %}<p class="caption">{{ t.duty_paused_note }}</p>{% endif %}
@@ -22,8 +22,8 @@
   {% let pending = request.status == kringkring::request::Status::Pending %}
   {% let unclaimed = accepted && !request.mine %}
   {% let terminal = !pending && !accepted %}
-  <article id="request-{{ request.id }}" data-request-id="{{ request.id }}" data-request-status="{{ request.status.code() }}" class="card {% if staff %}queue-card{% else %}request-card{% endif %}{% if staff && (unclaimed || terminal || request.undo_pending) %} queue-card--dim{% endif %}">
-    <div>
+  <article id="request-{{ request.id }}" data-request-id="{{ request.id }}" data-request-status="{{ request.status.code() }}" class="card request--{{ request.status.code() }}{% if accepted && request.mine %} request--mine{% endif %} {% if staff %}queue-card{% else %}request-card{% endif %}{% if staff && (unclaimed || terminal || request.undo_pending) %} queue-card--dim{% endif %}">
+    <div class="request-body">
       {% if staff %}
       <h2>{{ request.location }}</h2>
       <p class="queue-item">{{ request.name }}</p>

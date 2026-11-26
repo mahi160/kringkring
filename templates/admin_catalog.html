@@ -1,21 +1,22 @@
 {% extends "base.html" %}
 {% import "catalog_fields.html" as fields %}
 {% block title %}{{ lang.catalog().catalog_title }} · {{ lang.brand() }}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
+{% block layout %}page admin{% endblock %}
 {% block return_page %}catalog{% endblock %}
 {% block content %}
 {% let t = lang.catalog() %}
 {% include "icon_bank.html" %}
-<div class="admin-heading">
-  <div><h1>{{ t.catalog_title }}</h1><p class="caption">{{ t.catalog_intro }}</p></div>
-  <a class="button button--secondary" href="/account">{{ t.account }}</a>
+<div class="page-head">
+  <h1>{{ t.catalog_title }}</h1>
+  <p class="caption">{{ t.catalog_intro }}</p>
 </div>
-<nav class="control-row catalog-nav" aria-label="{{ t.catalog_title }}">
-  <a class="button button--secondary" href="#items">{{ t.menu_items }}</a>
-  <a class="button button--secondary" href="#modifiers">{{ t.modifiers }}</a>
-  <a class="button button--secondary" href="#locations">{{ t.locations }}</a>
-  <a class="button button--secondary" href="#rejectreasons">{{ t.reject_reasons }}</a>
-  <a class="button button--secondary" href="#cancelreasons">{{ t.cancel_reasons }}</a>
+<nav class="pivot" aria-label="{{ t.catalog_title }}">
+  <a href="#items">{{ t.menu_items }}</a>
+  <a href="#modifiers">{{ t.modifiers }}</a>
+  <a href="#locations">{{ t.locations }}</a>
+  <a href="#rejectreasons">{{ t.reject_reasons }}</a>
+  <a href="#cancelreasons">{{ t.cancel_reasons }}</a>
 </nav>
 <div class="catalog-layout">
   <section id="items" class="directory">

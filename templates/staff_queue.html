@@ -1,21 +1,19 @@
 {% extends "base.html" %}
 {% block title %}{{ lang.catalog().staff_queue }} · {{ lang.brand() }}{% endblock %}
 {% block meta %}{% include "live_scripts.html" %}<script src="/assets/queue-clock.js" defer></script><script src="/assets/feedback.js" defer></script><script src="/assets/push.js" defer></script>{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
 {% block extra_controls %}{% include "sound_toggle.html" %}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block layout %}page{% endblock %}
 {% block return_page %}queue{% endblock %}
 {% block content %}
 {% let t = lang.catalog() %}
-<div class="admin-heading">
-  <div>
-    <h1>{{ t.staff_queue }}</h1>
-    <p class="caption">{{ t.queue_oldest }}</p>
-  </div>
-  <a class="button button--secondary" href="/account">{{ t.account }}</a>
+<div class="page-head">
+  <h1>{{ t.staff_queue }}</h1>
+  <p class="caption">{{ t.queue_oldest }}</p>
 </div>
 {% include "push_prompt.html" %}
 {% if stale %}<p class="admin-error" role="alert">{{ t.queue_stale }}</p>{% endif %}
-<div hx-ext="sse" sse-connect="/staff/events" sse-close="closed">
+<div class="queue-page" hx-ext="sse" sse-connect="/staff/events" sse-close="closed">
   <div sse-swap="cards" data-sound-feed="staff" aria-live="polite">{{ cards|safe }}</div>
 </div>
 {% endblock %}

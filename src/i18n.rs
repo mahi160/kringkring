@@ -38,14 +38,6 @@ impl Language {
         }
     }
 
-    pub fn english(self) -> &'static Catalog {
-        &en::CATALOG
-    }
-
-    pub fn bengali(self) -> &'static Catalog {
-        &bn::CATALOG
-    }
-
     pub fn catalog(self) -> &'static Catalog {
         match self {
             Self::Bn => &bn::CATALOG,
@@ -118,36 +110,17 @@ pub struct Catalog {
     pub health: &'static str,
     pub database_ok: &'static str,
     pub database_down: &'static str,
-    pub guide: &'static str,
-    pub design_system: &'static str,
-    pub metro: &'static str,
-    pub intro: &'static str,
-    pub tiles: &'static str,
     pub tea: &'static str,
     pub coffee: &'static str,
     pub water: &'static str,
     pub snacks: &'static str,
     pub locations: &'static str,
     pub staff_queue: &'static str,
-    pub ring_again: &'static str,
-    pub waiting: &'static str,
     pub delivered: &'static str,
     pub cancel: &'static str,
     pub cancelled: &'static str,
-    pub tile_hint: &'static str,
-    pub preview_prefix: &'static str,
-    pub preview_suffix: &'static str,
-    pub type_title: &'static str,
-    pub inter: &'static str,
-    pub noto: &'static str,
-    pub sample_title: &'static str,
-    pub sample_body: &'static str,
     pub actions: &'static str,
-    pub buttons: &'static str,
-    pub try_tile: &'static str,
-    pub view_type: &'static str,
     pub unavailable: &'static str,
-    pub status_chips: &'static str,
     pub request_status: &'static str,
     pub manage_users: &'static str,
     pub users_title: &'static str,

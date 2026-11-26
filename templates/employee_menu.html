@@ -1,28 +1,29 @@
 {% extends "base.html" %}
 {% block title %}{{ lang.catalog().menu_title }} · {{ lang.brand() }}{% endblock %}
 {% block meta %}{% include "live_scripts.html" %}<script src="/assets/feedback.js" defer></script><script src="/assets/push.js" defer></script>{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
 {% block extra_controls %}{% include "sound_toggle.html" %}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block layout %}page{% endblock %}
 {% block return_page %}menu{% endblock %}
 {% block content %}
 {% let t = lang.catalog() %}
 {% include "icon_bank.html" %}
-<div class="admin-heading">
+<div class="page-head">
   <h1>{{ t.menu_title }}</h1>
-  <a class="button button--secondary" href="/account">{{ t.account }}</a>
 </div>
 {% include "push_prompt.html" %}
 
-<section id="requests" class="directory order-section" tabindex="-1" aria-labelledby="open-title">
-  <h2 id="open-title">{{ t.request_open }}</h2>
+<div class="order-page">
+<section id="requests" class="order-section order-requests" tabindex="-1" aria-labelledby="open-title">
+  <h2 id="open-title" class="section-label">{{ t.request_open }}</h2>
   <div hx-ext="sse" sse-connect="/employee/events" sse-close="closed">
     <div sse-swap="cards" data-sound-feed="employee" aria-live="polite">{{ cards|safe }}</div>
   </div>
 </section>
 
 <div id="order-controls">
-<section class="directory order-section" aria-labelledby="menu-title">
-  <h2 id="menu-title">{{ t.menu_preview }}</h2>
+<section class="order-section order-menu" aria-labelledby="menu-title">
+  <h2 id="menu-title" class="section-label">{{ t.menu_preview }}</h2>
   <div class="menu-preview order-grid">
     {% for item in data.items %}
     <a class="tile tile--{{ item.color }}" href="/employee/menu?item_id={{ item.entry.id }}#compose"{% if self.selected(item.entry.id) %} aria-current="true"{% endif %}>
@@ -37,7 +38,7 @@
   </div>
 </section>
 
-<div id="compose" class="order-section" tabindex="-1">
+<div id="compose" class="order-section order-compose" tabindex="-1">
   {% if let Some(message) = error %}<p class="admin-error" role="alert">{{ message }}</p>{% endif %}
   {% if let Some(draft) = composer %}
   <section class="card order-composer" aria-labelledby="compose-title">
@@ -77,6 +78,7 @@
     </form>
   </section>
   {% endif %}
+</div>
 </div>
 </div>
 {% endblock %}

@@ -1,20 +1,45 @@
 {% extends "base.html" %}
 {% block title %}{{ lang.catalog().account }} · {{ lang.brand() }}{% endblock %}
-{% block layout %}auth{% endblock %}
+{% block layout %}page{% endblock %}
 {% block return_page %}account{% endblock %}
 {% block content %}
-<h1>{{ lang.catalog().signed_in }}</h1>
-<div class="control-row">
-  {% if is_admin %}
-  <a class="button" href="/admin/users">{{ lang.catalog().manage_users }}</a>
-  <a class="button" href="/admin/catalog">{{ lang.catalog().manage_catalog }}</a>
-  <a class="button button--secondary" href="/admin/history">{{ lang.catalog().admin_history }}</a>
-  <a class="button button--secondary" href="/admin/status">{{ lang.catalog().admin_status }}</a>
-  {% endif %}
-  {% if is_employee %}<a class="button button--secondary" href="/employee/menu">{{ lang.catalog().menu_title }}</a>
-  {% else %}<a class="button button--secondary" href="/staff">{{ lang.catalog().staff_queue }}</a>{% endif %}
-  <form action="/logout" method="post">
-    <button class="button button--secondary" type="submit">{{ lang.catalog().sign_out }}</button>
-  </form>
+{% let t = lang.catalog() %}
+{% include "icon_bank.html" %}
+<div class="page-head">
+  <h1>{{ t.signed_in }}</h1>
 </div>
+<nav class="start-grid" aria-label="{{ t.account }}">
+  {% if is_employee %}
+  <a class="tile tile--blue tile--wide" href="/employee/menu">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-tea"/></svg>
+    <span>{{ t.menu_title }}</span>
+  </a>
+  {% else %}
+  <a class="tile tile--blue tile--wide" href="/staff">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-queue"/></svg>
+    <span>{{ t.staff_queue }}</span>
+  </a>
+  {% endif %}
+  {% if is_admin %}
+  <a class="tile tile--violet" href="/admin/users">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-people"/></svg>
+    <span>{{ t.manage_users }}</span>
+  </a>
+  <a class="tile tile--teal" href="/admin/catalog">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-sliders"/></svg>
+    <span>{{ t.manage_catalog }}</span>
+  </a>
+  <a class="tile tile--ochre" href="/admin/history">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-clock"/></svg>
+    <span>{{ t.admin_history }}</span>
+  </a>
+  <a class="tile tile--green" href="/admin/status">
+    <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-pulse"/></svg>
+    <span>{{ t.admin_status }}</span>
+  </a>
+  {% endif %}
+</nav>
+<form class="sign-out" action="/logout" method="post">
+  <button class="button button--secondary" type="submit">{{ t.sign_out }}</button>
+</form>
 {% endblock %}

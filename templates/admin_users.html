@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 {% import "user_fields.html" as fields %}
 {% block title %}{{ lang.catalog().users_title }} · {{ lang.brand() }}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
+{% block layout %}page admin{% endblock %}
 {% block return_page %}users{% endblock %}
 {% block content %}
 {% let t = lang.catalog() %}
-<div class="admin-heading">
-  <div>
-    <h1>{{ t.users_title }}</h1>
-    <p class="caption">{{ t.users_intro }}</p>
-  </div>
-  <a class="button button--secondary" href="/account">{{ t.account }}</a>
+<div class="page-head">
+  <h1>{{ t.users_title }}</h1>
+  <p class="caption">{{ t.users_intro }}</p>
 </div>
 
 <div class="user-workspace">
@@ -24,7 +22,7 @@
   </details>
 
   <section class="directory" aria-labelledby="directory-title">
-    <h2 id="directory-title">{{ t.user_directory }}</h2>
+    <h2 id="directory-title" class="section-label">{{ t.user_directory }}</h2>
     {% for user in users %}
       <details class="user-row">
         <summary id="user-{{ user.id }}">

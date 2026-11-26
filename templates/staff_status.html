@@ -1,16 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ lang.catalog().admin_status }} · {{ lang.brand() }}{% endblock %}
 {% block meta %}{% include "live_scripts.html" %}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
+{% block layout %}page admin{% endblock %}
 {% block return_page %}status{% endblock %}
 {% block content %}
 {% let t = lang.catalog() %}
-<div class="admin-heading">
-  <div><h1>{{ t.admin_status }}</h1><p class="caption">{{ t.status_intro }}</p></div>
-  <div class="control-row">
-    <a class="button button--secondary" href="/admin/history">{{ t.admin_history }}</a>
-    <a class="button button--secondary" href="/account">{{ t.account }}</a>
-  </div>
+<div class="page-head">
+  <h1>{{ t.admin_status }}</h1>
+  <p class="caption">{{ t.status_intro }}</p>
+  <a class="text-link" href="/admin/history">{{ t.admin_history }}</a>
 </div>
 <section hx-ext="sse" sse-connect="/admin/status/events" sse-close="closed" aria-label="{{ t.admin_status }}">
   <div sse-swap="cards" aria-live="polite">{{ rows|safe }}</div>

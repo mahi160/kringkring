@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ lang.brand() }}{% endblock %}
-{% block layout %}user-admin{% endblock %}
+{% block nav %}{% include "account_link.html" %}{% endblock %}
+{% block layout %}page admin{% endblock %}
 {% block return_page %}catalog{% endblock %}
 {% block content %}
 <h1>{{ lang.catalog().catalog_title }}</h1>

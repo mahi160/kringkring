@@ -34,16 +34,9 @@ struct HealthPage {
     available: bool,
 }
 
-#[derive(Template)]
-#[template(path = "styleguide.html")]
-struct Styleguide {
-    lang: Language,
-}
-
 pub fn router(db: PathBuf) -> Router {
     let mut router = Router::new()
         .route("/health", get(health))
-        .route("/styleguide", get(styleguide))
         .merge(auth::routes(&db))
         .merge(admin_users::routes(&db))
         .merge(admin_history::routes(&db))
@@ -68,7 +61,6 @@ fn assets<S: Clone + Send + Sync + 'static>(mut router: Router<S>) -> Router<S> 
         ("push.js", "text/javascript; charset=utf-8"),
         ("theme.js", "text/javascript; charset=utf-8"),
         ("login.js", "text/javascript; charset=utf-8"),
-        ("styleguide.js", "text/javascript; charset=utf-8"),
         ("metro.css", "text/css; charset=utf-8"),
         ("fonts.css", "text/css; charset=utf-8"),
     ] {
@@ -82,10 +74,6 @@ fn assets<S: Clone + Send + Sync + 'static>(mut router: Router<S>) -> Router<S> 
         );
     }
     router
-}
-
-async fn styleguide(Locale(lang): Locale) -> Response {
-    page(StatusCode::OK, Styleguide { lang })
 }
 
 async fn health(State(db): State<PathBuf>, Locale(lang): Locale) -> Response {

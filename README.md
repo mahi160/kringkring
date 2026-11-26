@@ -57,9 +57,9 @@ From the admin account page, open **Request history** (`/admin/history`) or **St
 
 The header language button saves a preference for the current browser. Without it, the app follows the signed-in user's preference or defaults to Bengali. The brand stays **ক্রিং ক্রিং** in both languages; PINs always use ASCII digits.
 
-## Metro styleguide
+## Theme and fonts
 
-Open [`/styleguide`](http://localhost:8080/styleguide) to preview the tile palette, type, buttons, cards, and status chips. The header toggle overrides the system theme for that browser. The Inter Latin and Noto Sans Bengali WOFF2 subsets are embedded in `assets/fonts.css`, from Fontsource 5.3.0; their OFL licenses are in [`assets/fonts/`](assets/fonts/). No internet connection is needed, but the app server must be reachable.
+The header theme button overrides the system theme for that browser. The Inter Latin and Noto Sans Bengali WOFF2 subsets are embedded in `assets/fonts.css`, from Fontsource 5.3.0; their OFL licenses are in [`assets/fonts/`](assets/fonts/). No internet connection is needed, but the app server must be reachable.
 
 ## Nightly backups
 
