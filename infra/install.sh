@@ -5,6 +5,7 @@
 # Both install the OpenRC service and a 5-minute updater that pulls the latest main build
 # from GitHub. The office gateway serves it as https://kringkring.questionpro.lan.
 set -euo pipefail
+trap 'printf "install.sh stopped at line %s.\n" "$LINENO" >&2' ERR
 
 name=kringkring
 data=/var/lib/kringkring
@@ -165,7 +166,7 @@ upgrade() {
     pct exec "$ctid" -- test -f "$data/kringkring.sqlite3" ||
         fail "CT $ctid has no database in $data; use create for a new install."
     # shellcheck disable=SC2016
-    existing=$(pct exec "$ctid" -- sh -c '. /etc/conf.d/kringkring 2>/dev/null; printf %s "${KRINGKRING_PUSH_CONTACT#mailto:}"')
+    existing=$(pct exec "$ctid" -- sh -c 'if [ -f /etc/conf.d/kringkring ]; then . /etc/conf.d/kringkring; fi; printf %s "${KRINGKRING_PUSH_CONTACT#mailto:}"')
     contact=$(ask_contact "$existing")
     setup "$ctid" "$contact"
     done_message "$ctid"
