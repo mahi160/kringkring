@@ -5,6 +5,7 @@ mod catalog;
 mod live;
 mod locale;
 mod ordering;
+mod profile;
 mod push;
 mod reasons;
 mod staff;
@@ -38,6 +39,7 @@ pub fn router(db: PathBuf) -> Router {
     let mut router = Router::new()
         .route("/health", get(health))
         .merge(auth::routes(&db))
+        .merge(profile::routes(&db))
         .merge(admin_users::routes(&db))
         .merge(admin_history::routes(&db))
         .merge(catalog::routes(&db))
@@ -60,7 +62,6 @@ fn assets<S: Clone + Send + Sync + 'static>(mut router: Router<S>) -> Router<S> 
         ("feedback.js", "text/javascript; charset=utf-8"),
         ("push.js", "text/javascript; charset=utf-8"),
         ("theme.js", "text/javascript; charset=utf-8"),
-        ("login.js", "text/javascript; charset=utf-8"),
         ("metro.css", "text/css; charset=utf-8"),
         ("fonts.css", "text/css; charset=utf-8"),
     ] {

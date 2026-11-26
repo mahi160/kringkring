@@ -51,6 +51,8 @@ pub(super) fn cookie<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a str> 
 #[serde(rename_all = "lowercase")]
 enum Page {
     Login,
+    Signup,
+    Setup,
     Account,
     Health,
     Users,
@@ -76,6 +78,8 @@ pub(super) fn routes() -> Router<PathBuf> {
 async fn set_language(Form(preference): Form<Preference>) -> Response {
     let return_to = match preference.page {
         Page::Login => "/login",
+        Page::Signup => "/signup",
+        Page::Setup => "/setup",
         Page::Account => "/account",
         Page::Health => "/health",
         Page::Users => "/admin/users",

@@ -21,6 +21,24 @@
     </form>
   </details>
 
+  {% if !signups.is_empty() %}
+  <section class="directory" aria-labelledby="signups-title">
+    <h2 id="signups-title" class="section-label">{{ t.signup_requests }}</h2>
+    {% for signup in signups %}
+    <form class="control-row signup-row" action="/admin/signups/{{ signup.id }}" method="post" aria-label="{{ t.signup_requests }}: {{ signup.username }}">
+      <strong>{{ signup.username }}</strong>
+      <label class="visually-hidden" for="signup-role-{{ signup.id }}">{{ t.role }}</label>
+      <select id="signup-role-{{ signup.id }}" name="role">
+        <option value="employee" selected>{{ t.employee }}</option>
+        <option value="staff">{{ t.staff }}</option>
+      </select>
+      <button class="button" name="decision" value="accept" type="submit">{{ t.signup_accept }}</button>
+      <button class="button button--secondary" name="decision" value="reject" type="submit">{{ t.signup_reject }}</button>
+    </form>
+    {% endfor %}
+  </section>
+  {% endif %}
+
   <section class="directory" aria-labelledby="directory-title">
     <h2 id="directory-title" class="section-label">{{ t.user_directory }}</h2>
     {% for user in users %}

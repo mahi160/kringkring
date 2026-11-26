@@ -1,0 +1,13 @@
+{% let t = lang.catalog() %}
+<div class="field">
+  <label for="default-location">{{ t.default_location }}</label>
+  <select id="default-location" name="default_location">
+    <option value="0">{{ t.no_default_location }}</option>
+    {% for location in settings.locations %}
+    {% let selected = settings.is_default(location.id) %}
+    {% if location.fields.active || selected %}
+    <option value="{{ location.id }}"{% if selected %} selected{% endif %}>{{ location.name(lang) }}{% if !location.fields.active %} ({{ t.user_inactive }}){% endif %}</option>
+    {% endif %}
+    {% endfor %}
+  </select>
+</div>

@@ -29,7 +29,21 @@ const USERS: &str = "/admin/users";
 struct UsersPage {
     lang: Language,
     users: Vec<User>,
+    signups: Vec<crate::users::signup::Signup>,
     locations: Vec<crate::catalog::Entry>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum Decision {
+    Accept,
+    Reject,
+}
+
+#[derive(Deserialize)]
+struct SignupForm {
+    decision: Decision,
+    role: Role,
 }
 
 #[derive(Template)]
@@ -87,6 +101,7 @@ pub(super) fn routes(db: &FsPath) -> Router<PathBuf> {
         .route(USERS, post(create))
         .route("/admin/users/{id}/edit", post(edit))
         .route("/admin/users/{id}/action", post(action))
+        .route("/admin/signups/{id}", post(decide))
         .route_layer(middleware::from_fn(same_origin));
     protect(
         Router::new().route(USERS, get(index)).merge(writes),
@@ -98,6 +113,7 @@ pub(super) fn routes(db: &FsPath) -> Router<PathBuf> {
 async fn index(State(db): State<PathBuf>, Locale(lang): Locale) -> Response {
     match tokio::task::spawn_blocking(move || {
         let users = admin::list(&db)?;
+        let signups = crate::users::signup::pending(&db)?;
         let locations = crate::catalog::choices(
             &crate::users::connect(&db)?,
             crate::catalog::Kind::Locations,
@@ -106,6 +122,7 @@ async fn index(State(db): State<PathBuf>, Locale(lang): Locale) -> Response {
         Ok::<_, Error>(UsersPage {
             lang,
             users,
+            signups,
             locations,
         })
     })
@@ -166,6 +183,29 @@ async fn action(
         Action::Deactivate => Change::Deactivate,
     };
     self::change(db, actor, lang, id, change).await
+}
+
+async fn decide(
+    State(db): State<PathBuf>,
+    Extension(actor): Extension<TokenHash>,
+    Locale(lang): Locale,
+    Path(id): Path<i64>,
+    form: Result<Form<SignupForm>, FormRejection>,
+) -> Response {
+    let Ok(Form(form)) = form else {
+        return error(lang, Error::Invalid);
+    };
+    finish(
+        lang,
+        tokio::task::spawn_blocking(move || {
+            match form.decision {
+                Decision::Accept => crate::users::signup::accept(&db, actor, id, form.role),
+                Decision::Reject => crate::users::signup::reject(&db, actor, id),
+            }
+            .map(|()| true)
+        })
+        .await,
+    )
 }
 
 async fn change(

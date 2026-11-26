@@ -9,7 +9,7 @@
   <h1>{{ t.signed_in }}</h1>
 </div>
 <nav class="start-grid" aria-label="{{ t.account }}">
-  {% if is_employee %}
+  {% if settings.employee %}
   <a class="tile tile--blue tile--wide" href="/employee/menu">
     <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-tea"/></svg>
     <span>{{ t.menu_title }}</span>
@@ -39,6 +39,13 @@
   </a>
   {% endif %}
 </nav>
+{% if settings.employee %}
+<form class="card user-form account-location" action="/account/location" method="post">
+  {% if let Some(error) = error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  {% include "location_select.html" %}
+  <button class="button button--secondary" type="submit">{{ t.save_changes }}</button>
+</form>
+{% endif %}
 <form class="sign-out" action="/logout" method="post">
   <button class="button button--secondary" type="submit">{{ t.sign_out }}</button>
 </form>

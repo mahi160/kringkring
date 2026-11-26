@@ -83,7 +83,7 @@ a { color: inherit; }
 /* Header */
 .shell-header { padding-top: env(safe-area-inset-top); border-bottom: 1px solid var(--edge); }
 .header-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 3.5rem; }
-.wordmark { display: inline-flex; gap: .5rem; align-items: center; font-size: 1.0625rem; font-weight: 650; }
+.wordmark { display: inline-flex; gap: .5rem; align-items: center; min-height: var(--tap); font-size: 1.0625rem; font-weight: 650; text-decoration: none; }
 .wordmark svg { color: var(--accent-line); }
 .header-controls { display: flex; align-items: center; gap: .125rem; margin-inline-end: -.5rem; }
 .icon-button, .theme-toggle, .language-toggle {
@@ -198,7 +198,7 @@ legend { padding: 0; margin-block-end: .5rem; font-weight: 600; font-size: .9375
 
 /* Disclosure rows */
 summary { cursor: pointer; }
-details > summary:not(.login-search > summary) {
+details > summary {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -211,7 +211,7 @@ details > summary:not(.login-search > summary) {
   font-weight: 600;
 }
 details > summary::-webkit-details-marker { display: none; }
-details > summary:not(.login-search > summary)::after {
+details > summary::after {
   content: "";
   position: absolute;
   inset-inline-end: .75rem;
@@ -222,7 +222,7 @@ details > summary:not(.login-search > summary)::after {
   border-width: 0 2px 2px 0;
   transform: translateY(-70%) rotate(45deg);
 }
-details[open] > summary:not(.login-search > summary)::after { transform: translateY(-25%) rotate(-135deg); }
+details[open] > summary::after { transform: translateY(-25%) rotate(-135deg); }
 
 /* Cards */
 .card { min-width: 0; padding: clamp(1rem, 3vw, 1.5rem); border-radius: var(--radius); background: var(--panel); }
@@ -473,50 +473,10 @@ details[open] > summary:not(.login-search > summary)::after { transform: transla
 /* Login */
 .login-layout { max-width: 26rem; }
 .login-layout .page-head { margin-block-end: 1.5rem; }
-.login-card { display: grid; gap: 1rem; padding: 0; background: transparent; }
-.login-card > * + * { margin: 0; }
-.login-card form { display: grid; gap: .75rem; }
-.login-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem; overflow-wrap: anywhere; }
-.login-heading h2 { font-size: 1.25rem; font-weight: 300; }
-.login-heading strong { font-size: 1.5rem; font-weight: 600; }
-.login-search summary { display: inline-flex; align-items: center; gap: .5rem; min-height: var(--tap); color: var(--accent-line); font-weight: 550; list-style: none; }
-.login-search input { margin-block-start: .5rem; }
-.name-wheel {
-  --name-row: 3.5rem;
-  position: relative;
-  height: calc(5 * var(--name-row));
-  margin: 0;
-  padding: calc(2 * var(--name-row)) 0;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scroll-snap-type: y mandatory;
-  scrollbar-width: none;
-  list-style: none;
-  mask-image: linear-gradient(transparent, #000 25%, #000 75%, transparent);
-}
-.name-wheel li { height: var(--name-row); scroll-snap-align: center; }
-.name-wheel button {
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  padding: 0 1rem;
-  border: 0;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--muted);
-  font-size: 1.375rem;
-  font-weight: 300;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.name-wheel button:hover { color: var(--ink); }
-.name-wheel [data-centered] button { background: var(--accent); color: var(--accent-ink); font-weight: 500; }
-.name-wheel button:focus-visible { outline-color: var(--ink); outline-offset: -4px; }
-#pin { padding-inline: 1rem; font-size: 2rem; letter-spacing: .5em; text-align: center; min-height: 4rem; }
-.login-card label[for="pin"] { display: block; margin-block-end: .375rem; font-weight: 550; font-size: .9375rem; }
-.pin-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--gap); }
-.pin-grid button { min-height: 4rem; border: 0; background: var(--panel); font-size: 1.625rem; font-weight: 300; font-variant-numeric: tabular-nums; }
-.pin-grid button:hover:not(:disabled) { background: var(--raised); border: 0; }
-.pin-grid button:active { background: var(--ink); color: var(--ground); }
+.login-layout .page-head h1 { font-size: clamp(2rem, 1.5rem + 2vw, 2.75rem); }
+.login-card { display: grid; gap: 1rem; }
 .login-submit { width: 100%; min-height: 3.5rem; font-size: 1.125rem; }
+.login-alt { justify-self: center; display: inline-flex; align-items: center; min-height: var(--tap); color: var(--accent-line); font-weight: 550; }
+.account-location { margin-block-start: 1.5rem; max-width: 26rem; }
+.signup-row { padding-block: .5rem; border-block-end: 1px solid var(--edge); }
+.signup-row strong { flex: 1 1 8rem; min-width: 0; overflow-wrap: anywhere; }

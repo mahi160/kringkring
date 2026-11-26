@@ -23,7 +23,7 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const { url = "/account", request } = event.notification.data || {};
+  const { url = "/", request } = event.notification.data || {};
   event.waitUntil((async () => {
     let target = url;
     if (request && event.action === "accept") {

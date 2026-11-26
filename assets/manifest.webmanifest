@@ -2,7 +2,7 @@
   "name": "ক্রিং ক্রিং",
   "short_name": "ক্রিং ক্রিং",
   "id": "/",
-  "start_url": "/account",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#000000",

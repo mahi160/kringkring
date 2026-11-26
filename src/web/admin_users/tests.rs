@@ -78,6 +78,19 @@ async fn manages_the_account_lifecycle_and_checks_admin_on_every_route() {
     let user = cookie(login(&app, "employee", "0456").await);
     let staff = cookie(login(&app, "staff", "0456").await);
     let manager = cookie(login(&app, "manager", "0456").await);
+    // Admin-chosen PINs must be replaced before the account can be used.
+    for session in [&user, &staff, &manager] {
+        assert_eq!(
+            get(&app, "/staff", session).await.status(),
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            post(&app, "/setup", session, "pin=0457&confirm=0457")
+                .await
+                .status(),
+            StatusCode::SEE_OTHER
+        );
+    }
     for denied in [&user, &staff] {
         assert_eq!(
             get(&app, "/admin/users", denied).await.status(),
@@ -112,7 +125,7 @@ async fn manages_the_account_lifecycle_and_checks_admin_on_every_route() {
         login(&app, "employee", "0456").await.status(),
         StatusCode::UNAUTHORIZED
     );
-    let user_second = cookie(login(&app, "renamed", "0456").await);
+    let user_second = cookie(login(&app, "renamed", "0457").await);
 
     let action = "/admin/users/2/action";
     assert_eq!(
@@ -133,14 +146,14 @@ async fn manages_the_account_lifecycle_and_checks_admin_on_every_route() {
         );
     }
     assert_eq!(
-        login(&app, "renamed", "0456").await.status(),
+        login(&app, "renamed", "0457").await.status(),
         StatusCode::UNAUTHORIZED
     );
     assert_eq!(
         post(&app, action, &admin, "action=unlock").await.status(),
         StatusCode::SEE_OTHER
     );
-    let user = cookie(login(&app, "renamed", "0456").await);
+    let user = cookie(login(&app, "renamed", "0457").await);
     assert_eq!(
         post(&app, action, &admin, "action=reset&pin=0789")
             .await
@@ -152,7 +165,7 @@ async fn manages_the_account_lifecycle_and_checks_admin_on_every_route() {
         StatusCode::UNAUTHORIZED
     );
     assert_eq!(
-        login(&app, "renamed", "0456").await.status(),
+        login(&app, "renamed", "0457").await.status(),
         StatusCode::UNAUTHORIZED
     );
     let user = cookie(login(&app, "renamed", "0789").await);

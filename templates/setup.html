@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().setup_title }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}page login-layout{% endblock %}
+{% block return_page %}setup{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+<div class="page-head">
+  <h1>{{ t.setup_title }}</h1>
+  <p class="caption">{{ t.setup_intro }}</p>
+</div>
+<form class="login-card" action="/setup" method="post">
+  {% if let Some(error) = error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <div class="field">
+    <label for="pin">{{ t.new_pin }}</label>
+    <input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required autofocus>
+  </div>
+  <div class="field">
+    <label for="confirm">{{ t.confirm_pin }}</label>
+    <input id="confirm" name="confirm" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>
+  </div>
+  {% if settings.employee %}{% include "location_select.html" %}{% endif %}
+  <button class="button login-submit" type="submit">{{ t.setup_continue }}</button>
+</form>
+<form class="sign-out" action="/logout" method="post">
+  <button class="button button--secondary" type="submit">{{ t.sign_out }}</button>
+</form>
+{% endblock %}

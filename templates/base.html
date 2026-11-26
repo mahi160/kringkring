@@ -18,12 +18,12 @@
   <a class="skip" href="#main">{{ lang.catalog().skip }}</a>
   <header class="shell-header">
     <div class="frame header-row">
-      <span class="wordmark">
+      <a class="wordmark" href="/">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M6 16h12l-1.5-3V10a4.5 4.5 0 0 0-9 0v3L6 16Zm4 3h4M4 9l1-3m15 3-1-3"/>
         </svg>
         <span lang="bn">{{ lang.brand() }}</span>
-      </span>
+      </a>
       <form class="header-controls" action="/language" method="post">
         {% block nav %}{% endblock %}
         {% block extra_controls %}{% endblock %}

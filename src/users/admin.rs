@@ -3,7 +3,7 @@ use std::path::Path;
 use kringkring::i18n::Language;
 use rusqlite::{Connection, OptionalExtension, TransactionBehavior, ffi, params};
 
-use super::{Role, TokenHash, connect, hash_pin, valid_pin, valid_username};
+use super::{Role, TokenHash, allowed_location, connect, hash_pin, valid_pin, valid_username};
 
 pub enum Error {
     Invalid,
@@ -126,8 +126,8 @@ pub fn create(path: &Path, actor: TokenHash, profile: Profile, pin: &str) -> Res
     let hash = new_hash(pin)?;
     write(path, actor, |db| {
         db.execute(
-            "INSERT INTO users (username, pin_hash, role, is_admin, default_language)
-             VALUES (?1, ?2, ?3, ?4, ?5)",
+            "INSERT INTO users (username, pin_hash, role, is_admin, default_language, must_change_pin)
+             VALUES (?1, ?2, ?3, ?4, ?5, 1)",
             params![
                 profile.username,
                 hash,
@@ -174,15 +174,10 @@ pub fn apply(path: &Path, actor: TokenHash, id: i64, change: Change) -> Result<b
                 } else {
                     None
                 };
-                if let Some(location) = location {
-                    let allowed: bool = db.query_row(
-                        "SELECT EXISTS (SELECT 1 FROM locations WHERE id = ?1 AND
-                         (active = 1 OR id = (SELECT default_location_id FROM users WHERE id = ?2)))",
-                        [location, id], |row| row.get(0),
-                    )?;
-                    if !allowed {
-                        return Err(Error::Location);
-                    }
+                if let Some(location) = location
+                    && !allowed_location(db, location, id)?
+                {
+                    return Err(Error::Location);
                 }
                 db.execute(
                     "UPDATE users SET username = ?1, role = ?2, is_admin = ?3, default_language = ?4, default_location_id = ?5 WHERE id = ?6",
@@ -192,7 +187,7 @@ pub fn apply(path: &Path, actor: TokenHash, id: i64, change: Change) -> Result<b
             Change::ResetPin(pin) => {
                 let hash = new_hash(&pin)?;
                 db.execute(
-                    "UPDATE users SET pin_hash = ?1, failed_pins = 0 WHERE id = ?2",
+                    "UPDATE users SET pin_hash = ?1, failed_pins = 0, must_change_pin = 1 WHERE id = ?2",
                     params![hash, id],
                 )?;
                 revoke_id(db, id)?;

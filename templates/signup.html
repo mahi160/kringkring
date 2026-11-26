@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().signup_link }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}page login-layout{% endblock %}
+{% block return_page %}signup{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+<div class="page-head">
+  <h1>{{ t.signup_link }}</h1>
+  {% if !sent %}<p class="caption">{{ t.signup_intro }}</p>{% endif %}
+</div>
+{% if sent %}
+<div class="login-card">
+  <p role="status">{{ t.signup_sent }}</p>
+  <a class="button login-submit" href="/login">{{ t.back_to_login }}</a>
+</div>
+{% else %}
+<form class="login-card" action="/signup" method="post">
+  {% if let Some(error) = error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+  <div class="field">
+    <label for="username">{{ t.username }}</label>
+    <input id="username" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+  </div>
+  <div class="field">
+    <label for="pin">{{ t.pin }}</label>
+    <input id="pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>
+  </div>
+  <div class="field">
+    <label for="confirm">{{ t.confirm_pin }}</label>
+    <input id="confirm" name="confirm" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="new-password" required>
+  </div>
+  <button class="button login-submit" type="submit">{{ t.signup_send }}</button>
+  <a class="login-alt" href="/login">{{ t.back_to_login }}</a>
+</form>
+{% endif %}
+{% endblock %}

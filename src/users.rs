@@ -1,4 +1,6 @@
 pub mod admin;
+pub mod setup;
+pub mod signup;
 
 use std::{error::Error, path::Path};
 
@@ -34,6 +36,7 @@ pub struct Principal {
     pub role: Role,
     pub is_admin: bool,
     pub language: Language,
+    pub setup_pending: bool,
 }
 
 pub(crate) fn connect(path: &Path) -> rusqlite::Result<Connection> {
@@ -73,27 +76,17 @@ pub fn init_admin(path: &Path, username: &str, pin: &str) -> Result<()> {
     Ok(())
 }
 
-pub struct LoginName {
-    pub id: i64,
-    pub username: String,
-}
-
-pub fn login_names(path: &Path) -> rusqlite::Result<Vec<LoginName>> {
-    connect(path)?
-        .prepare(
-            "SELECT id, username FROM users WHERE active = 1 ORDER BY username COLLATE NOCASE, id",
-        )?
-        .query_map([], |row| {
-            Ok(LoginName {
-                id: row.get(0)?,
-                username: row.get(1)?,
-            })
-        })?
-        .collect()
+/// A default location must be active, unless it is the user's current one.
+fn allowed_location(db: &Connection, location: i64, user: i64) -> rusqlite::Result<bool> {
+    db.query_row(
+        "SELECT EXISTS (SELECT 1 FROM locations WHERE id = ?1 AND
+         (active = 1 OR id = (SELECT default_location_id FROM users WHERE id = ?2)))",
+        [location, user],
+        |row| row.get(0),
+    )
 }
 
 pub struct LoginSession {
-    pub user_id: i64,
     pub token: String,
 }
 
@@ -145,7 +138,6 @@ pub fn login(path: &Path, username: &str, pin: &str) -> Result<Option<LoginSessi
     )?;
     tx.commit()?;
     Ok(Some(LoginSession {
-        user_id: id,
         token: URL_SAFE_NO_PAD.encode(token),
     }))
 }
@@ -162,7 +154,7 @@ pub fn token_hash(encoded: &str) -> Option<TokenHash> {
 pub fn principal(path: &Path, digest: TokenHash) -> Result<Option<Principal>> {
     Ok(connect(path)?
         .query_row(
-            "SELECT users.role = 'staff', users.is_admin, users.default_language = 'en' FROM sessions
+            "SELECT users.role = 'staff', users.is_admin, users.default_language = 'en', users.must_change_pin FROM sessions
          JOIN users ON users.id = sessions.user_id WHERE sessions.token_hash = ?1 AND users.active = 1",
             [digest],
             |row| {
@@ -174,6 +166,7 @@ pub fn principal(path: &Path, digest: TokenHash) -> Result<Option<Principal>> {
                     },
                     is_admin: row.get(1)?,
                     language: if row.get(2)? { Language::En } else { Language::Bn },
+                    setup_pending: row.get(3)?,
                 })
             },
         )

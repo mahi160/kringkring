@@ -1,5 +1,3 @@
-mod wheel;
-
 use std::path::{Path, PathBuf};
 
 use askama::Template;
@@ -22,11 +20,11 @@ const COOKIE: &str = "__Host-kringkring_session";
 const COOKIE_FLAGS: &str = "Path=/; HttpOnly; Secure; SameSite=Lax";
 
 #[derive(Template)]
-#[template(path = "account.html")]
-struct AccountPage {
+#[template(path = "login.html")]
+struct LoginPage {
     lang: Language,
-    is_admin: bool,
-    is_employee: bool,
+    username: String,
+    failed: bool,
 }
 
 #[derive(Deserialize)]
@@ -42,6 +40,8 @@ struct RevokeSessions {
 
 #[derive(Clone, Copy)]
 pub(super) enum Access {
+    /// Signed in, even before replacing an administrator-chosen PIN.
+    Setup,
     SignedIn,
     Role(Role),
     Admin,
@@ -53,7 +53,7 @@ pub fn routes(db: &Path) -> Router<PathBuf> {
         .merge(protect(
             Router::new().route("/logout", post(logout)),
             db,
-            Access::SignedIn,
+            Access::Setup,
         ))
         .merge(protect(
             Router::new().route("/admin/sessions/revoke", post(revoke)),
@@ -63,27 +63,22 @@ pub fn routes(db: &Path) -> Router<PathBuf> {
         .route_layer(middleware::from_fn(same_origin));
 
     Router::new()
-        .route("/", get(|| async { Redirect::to("/account") }))
-        .route("/login", get(wheel::index))
+        .route(
+            "/login",
+            get(|Locale(lang)| async move {
+                page(
+                    StatusCode::OK,
+                    LoginPage {
+                        lang,
+                        username: String::new(),
+                        failed: false,
+                    },
+                )
+            }),
+        )
         .merge(mutations)
         .merge(protect(
-            Router::new().route(
-                "/account",
-                get(
-                    |Locale(lang),
-                     Extension(is_admin): Extension<bool>,
-                     Extension(role): Extension<Role>| async move {
-                        page(
-                            StatusCode::OK,
-                            AccountPage {
-                                lang,
-                                is_admin,
-                                is_employee: role == Role::Employee,
-                            },
-                        )
-                    },
-                ),
-            ),
+            Router::new().route("/", get(home)),
             db,
             Access::SignedIn,
         ))
@@ -99,20 +94,40 @@ pub fn routes(db: &Path) -> Router<PathBuf> {
         ))
 }
 
-/// Browser page loads go to the login page; API, htmx, and SSE requests get a bare 401.
-fn signed_out(request: &Request) -> Response {
+fn wants_page(request: &Request) -> bool {
     let headers = request.headers();
-    let page = request.method() == axum::http::Method::GET
+    request.method() == axum::http::Method::GET
         && !headers.contains_key("hx-request")
         && headers
             .get(header::ACCEPT)
             .and_then(|value| value.to_str().ok())
-            .is_some_and(|accept| accept.contains("text/html"));
-    if page {
+            .is_some_and(|accept| accept.contains("text/html"))
+}
+
+/// Browser page loads go to the login page; API, htmx, and SSE requests get a bare 401.
+fn signed_out(request: &Request) -> Response {
+    if wants_page(request) {
         Redirect::to("/login").into_response()
     } else {
         StatusCode::UNAUTHORIZED.into_response()
     }
+}
+
+/// Until the user replaces an administrator-chosen PIN, pages go to setup and everything else is refused.
+fn setup_required(request: &Request) -> Response {
+    if wants_page(request) {
+        Redirect::to("/setup").into_response()
+    } else {
+        StatusCode::FORBIDDEN.into_response()
+    }
+}
+
+/// Each role's main screen: employees order from the menu, staff work the queue.
+async fn home(Extension(role): Extension<Role>) -> Redirect {
+    Redirect::to(match role {
+        Role::Employee => "/employee/menu",
+        Role::Staff => "/staff",
+    })
 }
 
 async fn allowed() -> StatusCode {
@@ -140,6 +155,8 @@ async fn authorize(
         _ => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
     let authorized = match access {
+        Access::Setup => true,
+        _ if principal.setup_pending => return setup_required(&request),
         Access::SignedIn => true,
         Access::Role(role) => principal.role == role,
         Access::Admin => principal.is_admin,
@@ -187,37 +204,31 @@ async fn login(
     Locale(lang): Locale,
     Form(credentials): Form<Credentials>,
 ) -> Response {
-    let auth_db = db.clone();
     let result = tokio::task::spawn_blocking(move || {
-        let result = users::login(&auth_db, &credentials.username, &credentials.pin);
+        let result = users::login(&db, &credentials.username, &credentials.pin);
         (credentials.username, result)
     })
     .await;
     match result {
-        Ok((_, Ok(Some(session)))) => {
-            let mut response = (
-                [(
-                    header::SET_COOKIE,
-                    format!(
-                        "{COOKIE}={}; {COOKIE_FLAGS}; Max-Age=34560000",
-                        session.token
-                    ),
-                )],
-                Redirect::to("/account"),
-            )
-                .into_response();
-            let remembered = format!(
-                "{}={}; {COOKIE_FLAGS}; Max-Age=34560000",
-                wheel::LAST_USER,
-                session.user_id
-            );
-            response.headers_mut().append(
+        Ok((_, Ok(Some(session)))) => (
+            [(
                 header::SET_COOKIE,
-                remembered.parse().expect("ASCII user ID cookie"),
-            );
-            response
-        }
-        Ok((username, Ok(None))) => wheel::failed(db, lang, username).await,
+                format!(
+                    "{COOKIE}={}; {COOKIE_FLAGS}; Max-Age=34560000",
+                    session.token
+                ),
+            )],
+            Redirect::to("/"),
+        )
+            .into_response(),
+        Ok((username, Ok(None))) => page(
+            StatusCode::UNAUTHORIZED,
+            LoginPage {
+                lang,
+                username,
+                failed: true,
+            },
+        ),
         _ => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     }
 }

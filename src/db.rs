@@ -18,6 +18,7 @@ const MIGRATIONS: &[&str] = &[
     include_str!("../migrations/0008_staff_duty.sql"),
     include_str!("../migrations/0009_request_history.sql"),
     include_str!("../migrations/0010_push.sql"),
+    include_str!("../migrations/0011_self_service.sql"),
 ];
 
 pub fn initialize(data_dir: &Path) -> Result<PathBuf, Box<dyn Error + Send + Sync>> {
@@ -65,7 +66,7 @@ mod tests {
         let journal: String = observer
             .pragma_query_value(None, "journal_mode", |row| row.get(0))
             .unwrap();
-        assert_eq!(version, 10);
+        assert_eq!(version, 11);
         assert_eq!(journal, "wal");
 
         let data_version = || {
