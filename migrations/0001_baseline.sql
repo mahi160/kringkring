@@ -1,0 +1,1 @@
+-- No application tables in the initial schema. The runner records version 1.

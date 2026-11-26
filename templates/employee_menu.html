@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().menu_title }} · {{ lang.brand() }}{% endblock %}
+{% block meta %}{% include "live_scripts.html" %}<script src="/assets/feedback.js" defer></script><script src="/assets/push.js" defer></script>{% endblock %}
+{% block extra_controls %}{% include "sound_toggle.html" %}{% endblock %}
+{% block layout %}user-admin{% endblock %}
+{% block return_page %}menu{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+{% include "icon_bank.html" %}
+<div class="admin-heading">
+  <h1>{{ t.menu_title }}</h1>
+  <a class="button button--secondary" href="/account">{{ t.account }}</a>
+</div>
+{% include "push_prompt.html" %}
+
+<section id="requests" class="directory order-section" tabindex="-1" aria-labelledby="open-title">
+  <h2 id="open-title">{{ t.request_open }}</h2>
+  <div hx-ext="sse" sse-connect="/employee/events" sse-close="closed">
+    <div sse-swap="cards" data-sound-feed="employee" aria-live="polite">{{ cards|safe }}</div>
+  </div>
+</section>
+
+<div id="order-controls">
+<section class="directory order-section" aria-labelledby="menu-title">
+  <h2 id="menu-title">{{ t.menu_preview }}</h2>
+  <div class="menu-preview order-grid">
+    {% for item in data.items %}
+    <a class="tile tile--{{ item.color }}" href="/employee/menu?item_id={{ item.entry.id }}#compose"{% if self.selected(item.entry.id) %} aria-current="true"{% endif %}>
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-{{ item.icon }}"/></svg>
+      <h3>{{ item.entry.name(lang) }}</h3>
+    </a>
+    {% endfor %}
+    <a class="tile tile--slate" href="/employee/menu?custom=true#compose"{% if let Some(draft) = composer %}{% if draft.item_id.is_none() %} aria-current="true"{% endif %}{% endif %}>
+      <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      <h3>{{ t.request_custom }}</h3>
+    </a>
+  </div>
+</section>
+
+<div id="compose" class="order-section" tabindex="-1">
+  {% if let Some(message) = error %}<p class="admin-error" role="alert">{{ message }}</p>{% endif %}
+  {% if let Some(draft) = composer %}
+  <section class="card order-composer" aria-labelledby="compose-title">
+    <h2 id="compose-title">{{ draft.title }}</h2>
+    <form method="post" action="/employee/menu#compose" class="user-form" aria-labelledby="compose-title" data-order-form
+          hx-post="/employee/menu" hx-target="#order-controls" hx-select="#order-controls" hx-swap="outerHTML"
+          hx-disabled-elt="find .order-send">
+      {% if let Some(item_id) = draft.item_id %}
+      <input type="hidden" name="item_id" value="{{ item_id }}">
+      {% else %}
+      <div class="field">
+        <label for="custom-text">{{ t.request_custom_label }}</label>
+        <input id="custom-text" name="custom_text" maxlength="80" value="{{ draft.custom_text }}" required>
+      </div>
+      {% endif %}
+      {% if !draft.allowed_modifiers.is_empty() %}
+      <fieldset class="order-picks">
+        <legend>{{ t.modifiers }}</legend>
+        {% for modifier in data.modifiers %}
+        {% if draft.allowed_modifiers.contains(&modifier.id) %}
+        <label><input type="checkbox" name="modifiers" value="{{ modifier.id }}"{% if draft.modifiers.contains(&modifier.id) %} checked{% endif %}><span>{{ modifier.name(lang) }}</span></label>
+        {% endif %}
+        {% endfor %}
+      </fieldset>
+      {% endif %}
+      {% if data.locations.is_empty() %}
+      <p>{{ t.request_no_locations }}</p>
+      {% else %}
+      <fieldset class="order-picks">
+        <legend>{{ t.locations }}</legend>
+        {% for location in data.locations %}
+        <label><input type="radio" name="location_id" value="{{ location.id }}" required{% if draft.at(location.id) %} checked{% endif %}><span>{{ location.name(lang) }}</span></label>
+        {% endfor %}
+      </fieldset>
+      {% endif %}
+      <button class="button order-send" type="submit"{% if data.locations.is_empty() %} disabled{% endif %}>{{ t.request_send }}</button>
+    </form>
+  </section>
+  {% endif %}
+</div>
+</div>
+{% endblock %}

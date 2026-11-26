@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().choose_reason }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}user-admin{% endblock %}
+{% block return_page %}{% if staff %}queue{% else %}menu{% endif %}{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+<div class="admin-heading">
+  <div><h1>{{ t.choose_reason }}</h1><p class="caption">{{ request_name }}</p></div>
+  <a class="button button--secondary" href="{% if staff %}/staff{% else %}/employee/menu#requests{% endif %}">{{ t.cancel }}</a>
+</div>
+<section class="card reason-picker" aria-label="{{ t.choose_reason }}">
+  {% if invalid %}<p class="admin-error" role="alert">{{ t.reason_invalid }}</p>{% endif %}
+  {% if !presets.is_empty() %}
+  <form class="control-row" method="post" action="{% if staff %}/staff/requests/{{ id }}{% else %}/employee/requests/{{ id }}#requests{% endif %}" aria-label="{{ t.choose_reason }}">
+    <input type="hidden" name="action" value="{% if staff %}reject{% else %}cancel{% endif %}">
+    {% for preset in presets %}
+    <button class="button" type="submit" name="preset_id" value="{{ preset.id }}">{{ preset.name(lang) }}</button>
+    {% endfor %}
+  </form>
+  {% endif %}
+  <details{% if presets.is_empty() || invalid %} open{% endif %}>
+    <summary id="other-reason">{{ t.other_reason }}</summary>
+    <form class="user-form" method="post" action="{% if staff %}/staff/requests/{{ id }}{% else %}/employee/requests/{{ id }}#requests{% endif %}" aria-labelledby="other-reason">
+      <div class="field">
+        <label for="reason">{{ t.reason_label }}</label>
+        <input id="reason" name="other" maxlength="120" required>
+      </div>
+      <button type="submit" class="button" name="action" value="{% if staff %}reject{% else %}cancel{% endif %}">{% if staff %}{{ t.queue_reject }}{% else %}{{ t.cancel_request }}{% endif %}</button>
+    </form>
+  </details>
+</section>
+{% endblock %}

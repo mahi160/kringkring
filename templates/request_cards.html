@@ -1,0 +1,77 @@
+{% let t = lang.catalog() %}
+{% let staff = duty_paused.is_some() %}
+{% if let Some(paused) = duty_paused %}
+<div class="card duty-bar" data-duty-paused="{{ paused }}">
+  <div>
+    <strong>{% if paused %}{{ t.duty_paused }}{% else %}{{ t.duty_on }}{% endif %}</strong>
+    {% if paused %}<p class="caption">{{ t.duty_paused_note }}</p>{% endif %}
+  </div>
+  <form action="/staff/duty" method="post" aria-label="{{ t.duty_on }}">
+    <button type="submit" class="button{% if !paused %} button--secondary{% endif %}" name="paused" value="{% if paused %}false{% else %}true{% endif %}">
+      {% if paused %}{{ t.duty_resume }}{% else %}{{ t.duty_pause }}{% endif %}
+    </button>
+  </form>
+</div>
+{% endif %}
+{% if requests.is_empty() %}
+<p class="caption">{% if staff %}{{ t.queue_empty }}{% else %}{{ t.request_none }}{% endif %}</p>
+{% else %}
+<div class="{% if staff %}queue-list{% else %}request-list{% endif %}">
+  {% for request in requests %}
+  {% let accepted = request.status == kringkring::request::Status::Accepted %}
+  {% let pending = request.status == kringkring::request::Status::Pending %}
+  {% let unclaimed = accepted && !request.mine %}
+  {% let terminal = !pending && !accepted %}
+  <article id="request-{{ request.id }}" data-request-id="{{ request.id }}" data-request-status="{{ request.status.code() }}" class="card {% if staff %}queue-card{% else %}request-card{% endif %}{% if staff && (unclaimed || terminal || request.undo_pending) %} queue-card--dim{% endif %}">
+    <div>
+      {% if staff %}
+      <h2>{{ request.location }}</h2>
+      <p class="queue-item">{{ request.name }}</p>
+      <p class="caption">{{ t.queue_requested_by }} {{ request.requester }}</p>
+      {% else %}
+      <h3>{{ request.name }}</h3>
+      <p class="caption">{{ request.location }}</p>
+      {% endif %}
+      {% if !request.reason.is_empty() %}<p class="request-reason">{{ request.reason }}</p>{% endif %}
+      {% if !request.modifiers.is_empty() %}
+      <ul class="control-row chips request-modifiers" aria-label="{{ t.modifiers }}">
+        {% for modifier in request.modifiers %}<li class="chip">{{ modifier }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+    <div class="request-status">
+      <span class="chip {% if accepted || request.status == kringkring::request::Status::Done %}chip--ready{% else if pending %}chip--waiting{% endif %}">
+        {% if request.undo_pending %}{{ t.cancel_scheduled }}
+        {% else if staff && unclaimed %}
+          {% if let Some(accepter) = request.accepted_by %}{{ t.queue_accepted_by }} {{ accepter }}
+          {% else %}{{ lang.status_label(request.status) }}{% endif %}
+        {% else %}{{ lang.status_label(request.status) }}{% endif %}
+      </span>
+      {% if staff %}
+      <span class="queue-timer caption" role="timer" aria-live="off" data-created="{{ request.created_at }}"{% if let Some(closed) = request.closed_at %} data-closed="{{ closed }}"{% endif %}></span>
+      {% endif %}
+    </div>
+    {% if staff && (pending || accepted) && !request.undo_pending %}
+    <form method="post" action="/staff/requests/{{ request.id }}" class="control-row queue-actions" aria-label="{{ t.actions }}: {{ request.name }} · {{ request.location }}">
+      {% if pending %}
+      <button class="button" type="submit" name="action" value="accept">{{ t.queue_accept }}</button>
+      <a class="button button--secondary" href="/staff/requests/{{ request.id }}/reject">{{ t.queue_reject }}</a>
+      {% else %}
+      <button class="button" type="submit" name="action" value="done"{% if unclaimed %} disabled{% endif %}>{{ t.queue_done }}</button>
+      {% endif %}
+    </form>
+    {% else if !staff && pending %}
+    <form method="post" action="/employee/requests/{{ request.id }}#requests" class="control-row queue-actions" aria-label="{{ t.actions }}: {{ request.name }}">
+      {% if request.undo_pending %}
+      <button class="button" type="submit" name="action" value="undo">{{ t.cancel_undo }}</button>
+      {% else %}
+      <button class="button button--secondary" type="submit" name="action" value="cancel">{{ t.cancel_request }}</button>
+      {% endif %}
+    </form>
+    {% else if !staff && accepted %}
+    <div class="queue-actions"><a class="button button--secondary" href="/employee/requests/{{ request.id }}/cancel">{{ t.cancel_request }}</a></div>
+    {% endif %}
+  </article>
+  {% endfor %}
+</div>
+{% endif %}

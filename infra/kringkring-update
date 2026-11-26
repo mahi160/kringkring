@@ -1,0 +1,60 @@
+#!/bin/sh
+# Installs the newest main build (release `kringkring-build`, published by CI) unless it is
+# already installed or already failed once. Run by root's crontab every 5 minutes.
+set -eu
+
+repo=mahi160/kringkring
+case $(uname -m) in
+    x86_64) asset=kringkring-x86_64-unknown-linux-musl ;;
+    aarch64) asset=kringkring-aarch64-unknown-linux-musl ;;
+    *) echo "Unsupported architecture" >&2; exit 1 ;;
+esac
+# Release downloads are not subject to the GitHub API rate limit.
+base=https://github.com/$repo/releases/download/kringkring-build
+state=/usr/local/lib/kringkring
+bin=/usr/local/bin/kringkring
+
+mkdir -p "$state"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+cd "$tmp"
+
+# Missing while nothing is published yet, or while CI replaces the release.
+wget -q -T 60 -O "$asset.sha256" "$base/$asset.sha256" 2>/dev/null || exit 0
+want=$(cut -d ' ' -f 1 "$asset.sha256")
+[ "$want" = "$(cat "$state/deployed" 2>/dev/null || true)" ] && exit 0
+[ "$want" = "$(cat "$state/failed" 2>/dev/null || true)" ] && exit 0
+
+echo "$(date -Iseconds) installing $want"
+wget -q -T 300 -O "$asset" "$base/$asset"
+# A mismatch is usually a release mid-publish; try again on the next run.
+sha256sum -c "$asset.sha256" >/dev/null
+chmod 0755 "$asset"
+"./$asset" --help >/dev/null
+
+[ -f "$bin" ] && cp -p "$bin" "$state/previous"
+cp "$asset" "$bin.new"
+mv -f "$bin.new" "$bin"
+rc-service kringkring restart >/dev/null
+
+healthy() {
+    for _ in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
+        wget -q -T 2 -O /dev/null http://127.0.0.1/health && return 0
+        sleep 1
+    done
+    return 1
+}
+if healthy; then
+    echo "$want" >"$state/deployed"
+    echo "$(date -Iseconds) installed $want"
+    exit 0
+fi
+
+echo "$want" >"$state/failed"
+echo "$(date -Iseconds) $want failed its health check; restoring the previous build" >&2
+if [ -f "$state/previous" ]; then
+    cp -p "$state/previous" "$bin.new"
+    mv -f "$bin.new" "$bin"
+    rc-service kringkring restart >/dev/null
+fi
+exit 1

@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().health }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}health{% endblock %}
+{% block return_page %}health{% endblock %}
+{% block content %}
+<h1>{{ lang.catalog().health }}</h1>
+<p>{% if available %}{{ lang.catalog().database_ok }}{% else %}{{ lang.catalog().database_down }}{% endif %}</p>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.brand() }}{% endblock %}
+{% block layout %}user-admin{% endblock %}
+{% block return_page %}catalog{% endblock %}
+{% block content %}
+<h1>{{ lang.catalog().catalog_title }}</h1>
+<p class="admin-error" role="alert">{{ message }}</p>
+<a class="button button--secondary" href="/admin/catalog">{{ lang.catalog().manage_catalog }}</a>
+{% endblock %}

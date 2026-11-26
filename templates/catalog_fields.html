@@ -1,0 +1,63 @@
+{% macro common(t, en, bn, order, active) %}
+<div class="catalog-form-grid">
+  <label class="field">{{ t.name_en }}<input name="name_en" value="{{ en }}" lang="en"></label>
+  <label class="field">{{ t.name_bn }}<input name="name_bn" value="{{ bn }}" lang="bn"></label>
+  <label class="field">{{ t.sort_order }}<input name="sort_order" type="number" value="{{ order }}" required></label>
+  <label class="checkbox"><input type="checkbox" name="active" value="true"{% if active %} checked{% endif %}> {{ t.user_active }}</label>
+</div>
+{% endmacro %}
+
+{% macro appearance(t, colors, icons, selected_color, selected_icon) %}
+<div class="catalog-form-grid">
+  <label class="field">{{ t.color }}
+    <select name="color">
+      {% for color in colors %}<option value="{{ color }}"{% if *color == selected_color %} selected{% endif %}>{{ t.color_name(color) }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="field">{{ t.tile_icon }}
+    <select name="icon">
+      {% for icon in icons %}<option value="{{ icon }}"{% if *icon == selected_icon %} selected{% endif %}>{{ t.icon_name(icon) }}</option>{% endfor %}
+    </select>
+  </label>
+</div>
+{% endmacro %}
+
+{% macro modifiers(t, lang, choices, selected) %}
+{% if !choices.is_empty() %}
+<fieldset class="catalog-modifiers">
+  <legend>{{ t.modifiers }}</legend>
+  {% for choice in choices %}
+  <label class="checkbox"><input type="checkbox" name="modifiers" value="{{ choice.id }}"{% if selected.contains(&choice.id) %} checked{% endif %}>
+    {{ choice.name(lang) }}{% if !choice.fields.active %} ({{ t.user_inactive }}){% endif %}
+  </label>
+  {% endfor %}
+</fieldset>
+{% endif %}
+{% endmacro %}
+
+{% macro choices(t, lang, kind, title, add, entries) %}
+<section id="{{ kind }}" class="directory">
+  <div class="catalog-section-header"><h2>{{ title }}</h2></div>
+  <details class="add-user card">
+    <summary id="add-{{ kind }}">{{ add }}</summary>
+    <form class="user-form" method="post" action="/admin/catalog/{{ kind }}" aria-labelledby="add-{{ kind }}">
+      {% call common(t, "", "", 10, true) %}{% endcall %}
+      <button class="button" type="submit">{{ add }}</button>
+    </form>
+  </details>
+  {% for entry in entries %}
+  <details class="user-row">
+    <summary id="{{ kind }}-{{ entry.id }}">
+      {{ entry.name(lang) }}
+      {% if !entry.fields.active %}<span class="chip">{{ t.user_inactive }}</span>{% endif %}
+    </summary>
+    <form class="user-form user-edit" method="post" action="/admin/catalog/{{ kind }}" aria-labelledby="{{ kind }}-{{ entry.id }}">
+      <input type="hidden" name="id" value="{{ entry.id }}">
+      {% call common(t, entry.fields.name_en, entry.fields.name_bn, entry.fields.sort_order, entry.fields.active) %}{% endcall %}
+      <button class="button" type="submit">{{ t.save_changes }}</button>
+    </form>
+  </details>
+  {% else %}<p class="caption">{{ t.catalog_empty }}</p>
+  {% endfor %}
+</section>
+{% endmacro %}

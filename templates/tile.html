@@ -1,0 +1,6 @@
+{% macro tile(name, tone, icon) %}
+<button type="button" class="tile tile--{{ tone }}" data-preview-tile>
+  <svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><use href="#icon-{{ icon }}"/></svg>
+  <span>{{ name }}</span>
+</button>
+{% endmacro %}

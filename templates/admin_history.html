@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().admin_history }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}user-admin{% endblock %}
+{% block return_page %}history{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+<div class="admin-heading">
+  <div><h1>{{ t.admin_history }}</h1><p class="caption">{{ t.history_window }}</p></div>
+  <div class="control-row">
+    <a class="button button--secondary" href="/admin/status">{{ t.admin_status }}</a>
+    <a class="button button--secondary" href="/account">{{ t.account }}</a>
+  </div>
+</div>
+<form id="history-filters" class="card user-form history-filters" action="/admin/history" method="get" aria-label="{{ t.history_filter }}">
+  <div class="field">
+    <label for="history-status">{{ t.request_status }}</label>
+    <select id="history-status" name="status">
+      <option value="">{{ t.history_all }}</option>
+      {% for status in statuses %}
+      <option value="{{ status.code() }}"{% if self.selected(status) %} selected{% endif %}>{{ lang.status_label(status) }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="history-user">{{ t.username }}</label>
+    <select id="history-user" name="user">
+      <option value="">{{ t.history_all }}</option>
+      {% if let Some(data) = result %}
+      {% for user in data.employees %}
+      <option value="{{ user.id }}"{% if data.user_id.as_ref() == Some(user.id) %} selected{% endif %}>{{ user.name }}</option>
+      {% endfor %}
+      {% endif %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="history-from">{{ t.history_from }}</label>
+    <input id="history-from" type="date" name="from" value="{{ filters.from }}">
+  </div>
+  <div class="field">
+    <label for="history-to">{{ t.history_to }}</label>
+    <input id="history-to" type="date" name="to" value="{{ filters.to }}">
+  </div>
+  <button class="button" type="submit">{{ t.history_filter }}</button>
+</form>
+{% if let Some(data) = result %}
+<section class="history-results" aria-label="{{ t.admin_history }}">
+  {% for request in data.requests %}
+  <details class="user-row history-row">
+    <summary>
+      <strong>{{ request.name }}</strong>
+      <span>{{ request.location }} · {{ request.employee }}</span>
+      <span class="caption">{{ request.created }}</span>
+      <span class="chip">{{ lang.status_label(request.status) }}</span>
+    </summary>
+    <dl class="card history-facts">
+      <div><dt>{{ t.history_id }}</dt><dd>{{ lang.digits(request.id.to_string().as_str()) }}</dd></div>
+      <div><dt>{{ t.history_created }}</dt><dd>{{ request.created }}</dd></div>
+      <div><dt>{{ t.history_updated }}</dt><dd>{{ request.updated }}</dd></div>
+      {% if let Some(time) = request.accepted %}<div><dt>{{ t.history_accepted }}</dt><dd>{{ time }}</dd></div>{% endif %}
+      {% if let Some(actor) = request.accepted_by %}<div><dt>{{ t.queue_accepted_by }}</dt><dd>{{ actor }}</dd></div>{% endif %}
+      {% if let Some(time) = request.closed %}<div><dt>{{ t.history_closed }}</dt><dd>{{ time }}</dd></div>{% endif %}
+      {% if let Some(actor) = request.closed_by %}<div><dt>{{ t.history_closed_by }}</dt><dd>{{ actor }}</dd></div>{% endif %}
+      {% if !request.modifiers.is_empty() %}<div><dt>{{ t.modifiers }}</dt><dd><ul class="control-row chips">{% for modifier in request.modifiers %}<li class="chip">{{ modifier }}</li>{% endfor %}</ul></dd></div>{% endif %}
+      {% if !request.reason.is_empty() %}<div><dt>{{ t.history_reason }}</dt><dd>{{ request.reason }}</dd></div>{% endif %}
+    </dl>
+  </details>
+  {% else %}<p>{{ t.history_empty }}</p>
+  {% endfor %}
+</section>
+<div class="control-row">
+  {% if let Some(number) = previous %}<button form="history-filters" class="button button--secondary" type="submit" name="page" value="{{ number }}">{{ t.history_previous }}</button>{% endif %}
+  {% if let Some(number) = next %}<button form="history-filters" class="button button--secondary" type="submit" name="page" value="{{ number }}">{{ t.history_next }}</button>{% endif %}
+</div>
+{% else %}<p class="admin-error" role="alert">{{ t.history_invalid }}</p>
+{% endif %}
+{% endblock %}

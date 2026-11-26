@@ -1,0 +1,28 @@
+{% macro profile(t, prefix, username, staff, english, admin) %}
+<div class="field">
+  <label for="{{ prefix }}-username">{{ t.username }}</label>
+  <input id="{{ prefix }}-username" name="username" value="{{ username }}" autocomplete="off" autocapitalize="none" spellcheck="false" required>
+</div>
+<div class="field">
+  <label for="{{ prefix }}-role">{{ t.role }}</label>
+  <select id="{{ prefix }}-role" name="role">
+    <option value="employee"{% if !staff %} selected{% endif %}>{{ t.employee }}</option>
+    <option value="staff"{% if staff %} selected{% endif %}>{{ t.staff }}</option>
+  </select>
+</div>
+<div class="field">
+  <label for="{{ prefix }}-language">{{ t.default_language }}</label>
+  <select id="{{ prefix }}-language" name="language">
+    <option value="bn"{% if !english %} selected{% endif %}>{{ t.bengali }}</option>
+    <option value="en"{% if english %} selected{% endif %}>{{ t.english }}</option>
+  </select>
+</div>
+<label class="checkbox"><input type="checkbox" name="is_admin" value="true"{% if admin %} checked{% endif %}> {{ t.admin_access }}</label>
+{% endmacro %}
+
+{% macro pin(t, prefix) %}
+<div class="field">
+  <label for="{{ prefix }}-pin">{{ t.pin }}</label>
+  <input id="{{ prefix }}-pin" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" autocomplete="new-password" required>
+</div>
+{% endmacro %}

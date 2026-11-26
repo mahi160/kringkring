@@ -1,0 +1,15 @@
+{% let t = lang.catalog() %}
+<ul class="status-list">
+  {% for user in staff %}
+  <li>
+    <strong>{{ user.name }}</strong>
+    <div class="control-row">
+      {% if user.paused %}<span class="chip chip--waiting">{{ t.duty_paused }}</span>
+      {% else if user.on_duty %}<span class="chip chip--ready">{{ t.duty_on }}</span>
+      {% else %}<span class="chip">{{ t.status_off_duty }}</span>{% endif %}
+      <span class="chip">{% if user.online %}{{ t.status_online }}{% else %}{{ t.status_offline }}{% endif %}</span>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% if staff.is_empty() %}<p>{{ t.status_none }}</p>{% endif %}

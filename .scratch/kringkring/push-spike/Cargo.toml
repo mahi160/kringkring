@@ -1,0 +1,16 @@
+[package]
+name = "kringkring-push-spike"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+axum = "0.8.9"
+axum-server = { version = "0.9.2", features = ["tls-rustls-ring"] }
+base64 = "0.22"
+p256 = "0.13.2"
+rcgen = "0.14.10"
+time = "0.3.55"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "time"] }
+url = "2.5.8"
+web-push = "0.11.0"

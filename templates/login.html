@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().login }} · {{ lang.brand() }}{% endblock %}
+{% block meta %}<script src="/assets/login.js" defer></script>{% endblock %}
+{% block layout %}auth login-layout{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+<h1>{{ t.login }}</h1>
+<div class="card login-card">
+  {% if failed %}<p class="error" role="alert">{{ t.login_error }}</p>{% endif %}
+  {% if let Some(account) = selected %}
+  <div class="login-heading">
+    <strong>{{ account.username }}</strong>
+    <a class="button button--secondary" href="/login">{{ t.login_change_user }}</a>
+  </div>
+  <form action="/login" method="post">
+    <input type="hidden" name="username" value="{{ account.username }}" autocomplete="username">
+    <p>
+      <label for="pin">{{ t.pin }}</label>
+      <input id="pin" name="pin" type="password" inputmode="numeric" enterkeyhint="go" pattern="[0-9]{4}" maxlength="4" autocomplete="current-password" required>
+    </p>
+    <div class="pin-grid" data-keypad hidden>
+      {% for digit in [1, 2, 3, 4, 5, 6, 7, 8, 9] %}
+      <button type="button" class="button button--secondary" data-pin="{{ digit }}">{{ digit }}</button>
+      {% endfor %}
+      <button type="button" class="button button--secondary" data-pin="clear" aria-label="{{ t.login_clear }}">×</button>
+      <button type="button" class="button button--secondary" data-pin="0">0</button>
+      <button type="button" class="button button--secondary" data-pin="delete" aria-label="{{ t.login_backspace }}">⌫</button>
+    </div>
+    <button class="button login-submit" type="submit">{{ t.login }}</button>
+  </form>
+  {% else %}
+  <div class="login-heading"><h2 id="choose-name">{{ t.choose_login_name }}</h2></div>
+  {% if users.is_empty() %}
+  <p class="caption">{{ t.login_no_names }}</p>
+  {% else %}
+  <details class="login-search" data-search hidden>
+    <summary>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4 4"/></svg>
+      {{ t.login_search }}
+    </summary>
+    <label class="visually-hidden" for="login-search">{{ t.login_search }}</label>
+    <input id="login-search" type="search" autocomplete="off" enterkeyhint="search" spellcheck="false">
+  </details>
+  <form action="/login" method="get">
+    <ul class="name-wheel" data-wheel aria-labelledby="choose-name">
+      {% for account in users %}
+      <li>
+        <button type="submit" name="user" value="{{ account.id }}"{% if self.was_last(account.id) %} data-last-user{% endif %}>{{ account.username }}</button>
+      </li>
+      {% endfor %}
+    </ul>
+    <p class="caption no-matches" data-no-matches role="status" hidden>{{ t.login_no_matches }}</p>
+  </form>
+  {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

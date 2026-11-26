@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% import "catalog_fields.html" as fields %}
+{% block title %}{{ lang.catalog().catalog_title }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}user-admin{% endblock %}
+{% block return_page %}catalog{% endblock %}
+{% block content %}
+{% let t = lang.catalog() %}
+{% include "icon_bank.html" %}
+<div class="admin-heading">
+  <div><h1>{{ t.catalog_title }}</h1><p class="caption">{{ t.catalog_intro }}</p></div>
+  <a class="button button--secondary" href="/account">{{ t.account }}</a>
+</div>
+<nav class="control-row catalog-nav" aria-label="{{ t.catalog_title }}">
+  <a class="button button--secondary" href="#items">{{ t.menu_items }}</a>
+  <a class="button button--secondary" href="#modifiers">{{ t.modifiers }}</a>
+  <a class="button button--secondary" href="#locations">{{ t.locations }}</a>
+  <a class="button button--secondary" href="#rejectreasons">{{ t.reject_reasons }}</a>
+  <a class="button button--secondary" href="#cancelreasons">{{ t.cancel_reasons }}</a>
+</nav>
+<div class="catalog-layout">
+  <section id="items" class="directory">
+    <div class="catalog-section-header"><h2>{{ t.menu_items }}</h2></div>
+    <details class="card add-user">
+      <summary id="add-menu">{{ t.add_item }}</summary>
+      <form class="user-form" method="post" action="/admin/catalog/menu" aria-labelledby="add-menu">
+        {% let empty = Vec::<i64>::new() %}
+        {% call fields::common(t, "", "", 10, true) %}{% endcall %}
+        {% call fields::appearance(t, colors, icons, "blue", "tea") %}{% endcall %}
+        {% call fields::modifiers(t, lang, data.modifiers, empty) %}{% endcall %}
+        <button class="button" type="submit">{{ t.add_item }}</button>
+      </form>
+    </details>
+    {% for item in data.items %}
+    <details class="user-row">
+      <summary id="menu-{{ item.entry.id }}">
+        <svg class="catalog-item-icon tile--{{ item.color }}" viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><use href="#icon-{{ item.icon }}"/></svg>
+        {{ item.entry.name(lang) }}
+        {% if !item.entry.fields.active %}<span class="chip">{{ t.user_inactive }}</span>{% endif %}
+      </summary>
+      <form class="user-form user-edit" method="post" action="/admin/catalog/menu" aria-labelledby="menu-{{ item.entry.id }}">
+        <input type="hidden" name="id" value="{{ item.entry.id }}">
+        {% call fields::common(t, item.entry.fields.name_en, item.entry.fields.name_bn, item.entry.fields.sort_order, item.entry.fields.active) %}{% endcall %}
+        {% call fields::appearance(t, colors, icons, item.color.as_str(), item.icon.as_str()) %}{% endcall %}
+        {% call fields::modifiers(t, lang, data.modifiers, item.modifiers) %}{% endcall %}
+        <button class="button" type="submit">{{ t.save_changes }}</button>
+      </form>
+    </details>
+    {% else %}<p class="caption">{{ t.catalog_empty }}</p>
+    {% endfor %}
+  </section>
+  <div class="catalog-side">
+    {% call fields::choices(t, lang, "modifiers", t.modifiers, t.add_modifier, data.modifiers) %}{% endcall %}
+    {% call fields::choices(t, lang, "locations", t.locations, t.add_location, data.locations) %}{% endcall %}
+    {% call fields::choices(t, lang, "rejectreasons", t.reject_reasons, t.add_reason, rejects) %}{% endcall %}
+    {% call fields::choices(t, lang, "cancelreasons", t.cancel_reasons, t.add_reason, cancels) %}{% endcall %}
+  </div>
+</div>
+{% endblock %}

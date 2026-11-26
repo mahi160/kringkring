@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.catalog().account }} · {{ lang.brand() }}{% endblock %}
+{% block layout %}auth{% endblock %}
+{% block return_page %}account{% endblock %}
+{% block content %}
+<h1>{{ lang.catalog().signed_in }}</h1>
+<div class="control-row">
+  {% if is_admin %}
+  <a class="button" href="/admin/users">{{ lang.catalog().manage_users }}</a>
+  <a class="button" href="/admin/catalog">{{ lang.catalog().manage_catalog }}</a>
+  <a class="button button--secondary" href="/admin/history">{{ lang.catalog().admin_history }}</a>
+  <a class="button button--secondary" href="/admin/status">{{ lang.catalog().admin_status }}</a>
+  {% endif %}
+  {% if is_employee %}<a class="button button--secondary" href="/employee/menu">{{ lang.catalog().menu_title }}</a>
+  {% else %}<a class="button button--secondary" href="/staff">{{ lang.catalog().staff_queue }}</a>{% endif %}
+  <form action="/logout" method="post">
+    <button class="button button--secondary" type="submit">{{ lang.catalog().sign_out }}</button>
+  </form>
+</div>
+{% endblock %}

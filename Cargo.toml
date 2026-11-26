@@ -1,0 +1,31 @@
+[package]
+name = "kringkring"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+argon2 = "0.6.0"
+askama = "0.16.1"
+async-stream = "0.3.6"
+axum = "0.8.9"
+base64 = "0.22.1"
+bytes = "1"
+clap = { version = "4.6.6", features = ["derive", "env"] }
+getrandom = "0.4"
+http = "1"
+http-body-util = "0.1.5"
+hyper-rustls = { version = "0.27", default-features = false, features = ["http1", "http2", "ring", "tls12", "webpki-tokio"] }
+hyper-util = { version = "0.1", features = ["client-legacy", "http1", "http2", "tokio"] }
+include_dir = "0.7.4"
+rusqlite = { version = "0.43.0", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_html_form = { version = "0.4.1", default-features = false, features = ["de", "std"] }
+serde_json = "1"
+sha2 = "0.11.1"
+tempfile = "3.27.0"
+tokio = { version = "1", features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
+web-push-native = "0.5"
+
+[dev-dependencies]
+tower = { version = "0.5.3", features = ["util"] }
