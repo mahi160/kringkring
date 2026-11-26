@@ -150,8 +150,13 @@ async fn two_tap_ordering_saves_default_and_changed_choices_and_enforces_open_li
     );
 
     connection
-        .execute("UPDATE requests SET status = 'accepted' WHERE id = 1", [])
+        .execute(
+            "UPDATE requests SET status = 'accepted', accepted_by = 2 WHERE id = 1",
+            [],
+        )
         .unwrap();
+    let menu = call(&app, Method::GET, "/employee/menu", &cookie, "").await;
+    assert!(html(menu).await.contains("Accepted by staff"));
     assert_eq!(
         send(&app, &cookie, "item_id=1&location_id=1")
             .await

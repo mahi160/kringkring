@@ -31,6 +31,7 @@
       {% else %}
       <h3>{{ request.name }}</h3>
       <p class="caption">{{ request.location }}</p>
+      {% if let Some(accepter) = request.accepted_by %}<p class="caption">{{ t.queue_accepted_by }} {{ accepter }}</p>{% endif %}
       {% endif %}
       {% if !request.reason.is_empty() %}<p class="request-reason">{{ request.reason }}</p>{% endif %}
       {% if !request.modifiers.is_empty() %}
