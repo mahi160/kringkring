@@ -63,6 +63,7 @@ pub fn routes(db: &Path) -> Router<PathBuf> {
         .route_layer(middleware::from_fn(same_origin));
 
     Router::new()
+        .route("/", get(|| async { Redirect::to("/account") }))
         .route("/login", get(wheel::index))
         .merge(mutations)
         .merge(protect(
@@ -98,6 +99,22 @@ pub fn routes(db: &Path) -> Router<PathBuf> {
         ))
 }
 
+/// Browser page loads go to the login page; API, htmx, and SSE requests get a bare 401.
+fn signed_out(request: &Request) -> Response {
+    let headers = request.headers();
+    let page = request.method() == axum::http::Method::GET
+        && !headers.contains_key("hx-request")
+        && headers
+            .get(header::ACCEPT)
+            .and_then(|value| value.to_str().ok())
+            .is_some_and(|accept| accept.contains("text/html"));
+    if page {
+        Redirect::to("/login").into_response()
+    } else {
+        StatusCode::UNAUTHORIZED.into_response()
+    }
+}
+
 async fn allowed() -> StatusCode {
     StatusCode::NO_CONTENT
 }
@@ -115,11 +132,11 @@ async fn authorize(
     next: Next,
 ) -> Response {
     let Some(token) = session_token(request.headers()) else {
-        return StatusCode::UNAUTHORIZED.into_response();
+        return signed_out(&request);
     };
     let principal = match tokio::task::spawn_blocking(move || users::principal(&db, token)).await {
         Ok(Ok(Some(principal))) => principal,
-        Ok(Ok(None)) => return StatusCode::UNAUTHORIZED.into_response(),
+        Ok(Ok(None)) => return signed_out(&request),
         _ => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
     let authorized = match access {

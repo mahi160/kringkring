@@ -90,6 +90,34 @@ async fn successful_login_resets_consecutive_failures_but_fifth_failure_locks() 
 }
 
 #[tokio::test]
+async fn signed_out_browser_pages_go_to_login() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = crate::web::router(crate::db::initialize(temp.path()).unwrap());
+    let open = |path: &str, accept: &str, htmx: bool| {
+        let mut request = Request::builder()
+            .uri(path)
+            .header(header::HOST, "kringkring.local")
+            .header(header::ACCEPT, accept);
+        if htmx {
+            request = request.header("hx-request", "true");
+        }
+        app.clone().oneshot(request.body(Body::empty()).unwrap())
+    };
+    let location = |response: &Response| response.headers()[header::LOCATION].to_owned();
+    let html = "text/html,application/xhtml+xml";
+
+    let root = open("/", html, false).await.unwrap();
+    assert_eq!(location(&root), "/account");
+    let account = open("/account", html, false).await.unwrap();
+    assert_eq!(account.status(), StatusCode::SEE_OTHER);
+    assert_eq!(location(&account), "/login");
+    for (accept, htmx) in [(html, true), ("text/event-stream", false)] {
+        let response = open("/staff/events", accept, htmx).await.unwrap();
+        assert_eq!(response.status(), StatusCode::UNAUTHORIZED);
+    }
+}
+
+#[tokio::test]
 async fn role_and_admin_guards_and_session_lifecycle() {
     let temp = tempfile::tempdir().unwrap();
     let db = crate::db::initialize(temp.path()).unwrap();

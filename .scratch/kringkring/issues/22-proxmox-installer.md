@@ -15,13 +15,13 @@ See SPEC.md §9.
 
 **Blocked by:** 03 (Local CA + HTTPS), 04 (Users, PIN login, sessions), 21 (Release builds)
 
-**Status:** in progress (code done; awaiting the CT 107 upgrade run)
+**Status:** in progress (CT 107 upgraded; a fresh `create` and an end-to-end auto-update of a changed binary are untested)
 
 Revised: the container is named `kringkring` on DHCP; the office gateway serves it as `https://kringkring.questionpro.lan`. Each push to `main` publishes the `kringkring-build` prerelease, and the container's cron job (`infra/kringkring-update`) installs it within 5 minutes, rolling back if `/health` fails.
 
 - [ ] Fresh run on a Proxmox host yields a working app at https://kringkring.questionpro.lan (manual)
-- [ ] `upgrade 107` converts CT 107 without data loss
+- [x] `upgrade 107` converts CT 107 without data loss (DB and backups kept; serves https://kringkring.questionpro.lan)
 - [ ] A push to main reaches the container within 5 minutes
 - [ ] Recreate container + reattach volume keeps users. Not automated; see README.
 - [x] Scripts pass `shellcheck`
-- [ ] Idle RAM of the service fits comfortably in 64 MB (measure in the CT)
+- [x] Idle RAM of the service fits comfortably in 64 MB: 7.1 MB RSS in CT 107
